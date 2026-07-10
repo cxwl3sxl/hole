@@ -3,6 +3,8 @@ server:
   address: "84.pj-local.cn:8080"
   # 是否启用 TLS (wss://)
   tls: false
+  # WebSocket 升级路径（需与服务端一致，默认 /_tunnel/）
+  tunnel_path: "/_tunnel/"
   # 全局认证 Token（需与服务端 global_token 一致）
   token: "sk_global_secret"
 

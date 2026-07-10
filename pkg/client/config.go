@@ -49,9 +49,10 @@ type Config struct {
 
 // ServerConfig 服务器连接配置
 type ServerConfig struct {
-	Address string `yaml:"address"`
-	TLS     bool   `yaml:"tls"`
-	Token   string `yaml:"token"`
+	Address    string `yaml:"address"`
+	TLS        bool   `yaml:"tls"`
+	Token      string `yaml:"token"`
+	TunnelPath string `yaml:"tunnel_path"` // WebSocket 升级路径
 }
 
 // HeartbeatConfig 心跳配置
@@ -77,6 +78,9 @@ func LoadClientConfig(path string) (*Config, error) {
 	}
 	if cfg.Proxies == nil {
 		cfg.Proxies = make(map[string]ProxyTarget)
+	}
+	if cfg.Server.TunnelPath == "" {
+		cfg.Server.TunnelPath = "/_tunnel/"
 	}
 
 	return &cfg, nil

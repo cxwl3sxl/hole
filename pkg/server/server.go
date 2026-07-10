@@ -26,8 +26,14 @@ func Start(cfg *Config) {
 	heartbeatInterval := time.Duration(cfg.Heartbeat.Interval) * time.Second
 	heartbeatTimeout := time.Duration(cfg.Heartbeat.Interval*cfg.Heartbeat.TimeoutMultiplier) * time.Second
 
+	tunnelPath := cfg.Server.TunnelPath
+	// 确保路径以 / 结尾，方便 ServeMux 前缀匹配
+	if !strings.HasSuffix(tunnelPath, "/") {
+		tunnelPath += "/"
+	}
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/_tunnel/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(tunnelPath, func(w http.ResponseWriter, r *http.Request) {
 		handleTunnelUpgrade(w, r, manager, cfg, heartbeatInterval, heartbeatTimeout)
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

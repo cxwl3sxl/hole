@@ -18,6 +18,7 @@ type Config struct {
 type ServerConfig struct {
 	Addr        string `yaml:"addr"`
 	Domain      string `yaml:"domain"`
+	TunnelPath  string `yaml:"tunnel_path"`  // WebSocket 升级路径
 	IdleTimeout int    `yaml:"idle_timeout"`
 	MaxTunnels  int    `yaml:"max_tunnels"`
 }
@@ -68,6 +69,9 @@ func setDefaults(cfg *Config) {
 	}
 	if cfg.Server.MaxTunnels == 0 {
 		cfg.Server.MaxTunnels = 1000
+	}
+	if cfg.Server.TunnelPath == "" {
+		cfg.Server.TunnelPath = "/_tunnel/"
 	}
 	if cfg.Heartbeat.Interval == 0 {
 		cfg.Heartbeat.Interval = 30

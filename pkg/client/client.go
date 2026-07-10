@@ -96,7 +96,11 @@ func (c *Client) connect(ctx context.Context) error {
 	if c.config.Server.TLS {
 		scheme = "wss"
 	}
-	u := fmt.Sprintf("%s://%s/_tunnel/", scheme, c.config.Server.Address)
+	tunnelPath := c.config.Server.TunnelPath
+	if !strings.HasPrefix(tunnelPath, "/") {
+		tunnelPath = "/" + tunnelPath
+	}
+	u := fmt.Sprintf("%s://%s%s", scheme, c.config.Server.Address, tunnelPath)
 
 	// 构建请求头
 	header := http.Header{}
