@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	configPath, subdomain, target := client.ParseCLI()
+	configPath, subdomain, target, tls := client.ParseCLI()
 
 	if configPath == "" {
 		log.Fatal("请指定 -config 参数")
@@ -22,7 +22,7 @@ func main() {
 	}
 
 	// 命令行覆盖
-	client.MergeCLIOverrides(cfg, subdomain, target)
+	client.MergeCLIOverrides(cfg, subdomain, target, tls)
 
 	// 初始化日志
 	initSlog()

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"log/slog"
 	"net"
@@ -17,14 +18,14 @@ import (
 type TunnelSession struct {
 	Conn     *websocket.Conn
 	Token    string
-	Proxies  map[string]string // subdomain → target addr
+	Proxies  map[string]ProxyTarget // subdomain → proxy target
 	forwards map[string]*LocalForward
 	mu       sync.Mutex
 	done     chan struct{}
 }
 
 // NewTunnelSession 创建客户端隧道会话
-func NewTunnelSession(conn *websocket.Conn, token string, proxies map[string]string) *TunnelSession {
+func NewTunnelSession(conn *websocket.Conn, token string, proxies map[string]ProxyTarget) *TunnelSession {
 	return &TunnelSession{
 		Conn:     conn,
 		Token:    token,
@@ -179,8 +180,8 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 		return nil
 	}
 
-	// 查找目标地址
-	targetAddr, ok := s.Proxies[payload.Subdomain]
+	// 查找代理目标
+	proxy, ok := s.Proxies[payload.Subdomain]
 	if !ok {
 		slog.Warn("unknown subdomain in tunnel_open",
 			"subdomain", payload.Subdomain,
@@ -192,11 +193,20 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 		return nil
 	}
 
-	// 建立到本地服务的 TCP 连接
-	localConn, err := net.Dial("tcp", targetAddr)
+	// 建立到本地服务的连接
+	var localConn net.Conn
+	var err error
+	if proxy.TLS {
+		localConn, err = tls.Dial("tcp", proxy.Target, &tls.Config{
+			InsecureSkipVerify: true, // 内网环境，跳过证书验证
+		})
+	} else {
+		localConn, err = net.Dial("tcp", proxy.Target)
+	}
 	if err != nil {
 		slog.Warn("dial local failed",
-			"target", targetAddr,
+			"target", proxy.Target,
+			"tls", proxy.TLS,
 			"error", err,
 		)
 		_ = protocol.WriteFrame(s.Conn, &protocol.Frame{
@@ -214,7 +224,8 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 	slog.Debug("tunnel opened",
 		"conn_id", frame.ConnID,
 		"subdomain", payload.Subdomain,
-		"target", targetAddr,
+		"target", proxy.Target,
+		"tls", proxy.TLS,
 	)
 
 	return nil
