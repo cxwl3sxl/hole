@@ -48,8 +48,9 @@ curl http://s120.84.pj-local.cn:8080/
 
 ```yaml
 server:
-  addr: ":8080"                # 监听地址
-  domain: "84.pj-local.cn"        # 泛域名（用于子域名提取）
+  addr: ":8080"                  # 监听地址
+  domain: "84.pj-local.cn"       # 泛域名（用于子域名提取）
+  tunnel_path: "/_tunnel/"       # WebSocket 升级路径
   idle_timeout: 300              # 连接空闲超时（秒）
   max_tunnels: 1000              # 最大隧道连接数
 
@@ -70,6 +71,7 @@ logging:
 server:
   address: "84.pj-local.cn:8080"   # 服务器地址
   tls: false                       # 是否走 WSS（客户端→服务器）
+  tunnel_path: "/_tunnel/"         # WebSocket 升级路径（需与服务端一致）
   token: "sk_global_secret"        # 与服务端 global_token 一致
 
 # 子域名 → 目标服务映射
@@ -198,6 +200,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
+    # tunnel_path 需与 server.yaml 中的 tunnel_path 一致
     location /_tunnel/ {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
