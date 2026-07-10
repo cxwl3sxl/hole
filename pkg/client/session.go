@@ -21,7 +21,15 @@ type TunnelSession struct {
 	Proxies  map[string]ProxyTarget // subdomain → proxy target
 	forwards map[string]*LocalForward
 	mu       sync.Mutex
+	wsMu     sync.Mutex // 串行化 WebSocket 写操作
 	done     chan struct{}
+}
+
+// WriteFrame 线程安全地写入帧
+func (s *TunnelSession) WriteFrame(frame *protocol.Frame) error {
+	s.wsMu.Lock()
+	defer s.wsMu.Unlock()
+	return protocol.WriteFrame(s.Conn, frame)
 }
 
 // NewTunnelSession 创建客户端隧道会话
@@ -173,7 +181,7 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 			"error", err,
 		)
 		// 回复 TUNNEL_CLOSE
-		_ = protocol.WriteFrame(s.Conn, &protocol.Frame{
+		_ = s.WriteFrame(&protocol.Frame{
 			Type:   protocol.FrameTunnelClose,
 			ConnID: frame.ConnID,
 		})
@@ -186,7 +194,7 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 		slog.Warn("unknown subdomain in tunnel_open",
 			"subdomain", payload.Subdomain,
 		)
-		_ = protocol.WriteFrame(s.Conn, &protocol.Frame{
+		_ = s.WriteFrame(&protocol.Frame{
 			Type:   protocol.FrameTunnelClose,
 			ConnID: frame.ConnID,
 		})
@@ -209,7 +217,7 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 			"tls", proxy.TLS,
 			"error", err,
 		)
-		_ = protocol.WriteFrame(s.Conn, &protocol.Frame{
+		_ = s.WriteFrame(&protocol.Frame{
 			Type:   protocol.FrameTunnelClose,
 			ConnID: frame.ConnID,
 		})
@@ -217,7 +225,7 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 	}
 
 	// 创建并启动本地转发
-	fwd := NewLocalForward(frame.ConnID, localConn, s.Conn)
+	fwd := NewLocalForward(frame.ConnID, localConn, s)
 	s.AddForward(fwd)
 	go fwd.Start(context.Background())
 
@@ -243,7 +251,7 @@ func (s *TunnelSession) sendHeartbeat(ctx context.Context) {
 				Type:   protocol.FramePing,
 				ConnID: protocol.ZeroConnID,
 			}
-			if err := protocol.WriteFrame(s.Conn, frame); err != nil {
+			if err := s.WriteFrame(frame); err != nil {
 				slog.Warn("heartbeat write failed",
 					"error", err,
 				)

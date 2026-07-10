@@ -51,7 +51,7 @@ func (r *Relay) Start(ctx context.Context) {
 		ConnID:  r.TunnelConnID,
 		Payload: openPayload,
 	}
-	if err := protocol.WriteFrame(r.Session.Conn, openFrame); err != nil {
+	if err := r.Session.WriteFrame(openFrame); err != nil {
 		slog.Error("failed to send tunnel_open",
 			"conn_id", r.TunnelConnID,
 			"error", err,
@@ -71,7 +71,7 @@ func (r *Relay) Start(ctx context.Context) {
 			ConnID:  r.TunnelConnID,
 			Payload: r.initialData,
 		}
-		if err := protocol.WriteFrame(r.Session.Conn, frame); err != nil {
+		if err := r.Session.WriteFrame(frame); err != nil {
 			slog.Error("failed to send initial tunnel_data",
 				"conn_id", r.TunnelConnID,
 				"error", err,
@@ -105,7 +105,7 @@ func (r *Relay) handleBrowserToTunnel(ctx context.Context) {
 				)
 			}
 			// 发送 TUNNEL_CLOSE 通知客户端
-			_ = protocol.WriteFrame(r.Session.Conn, &protocol.Frame{
+			_ = r.Session.WriteFrame(&protocol.Frame{
 				Type:   protocol.FrameTunnelClose,
 				ConnID: r.TunnelConnID,
 			})
@@ -118,7 +118,7 @@ func (r *Relay) handleBrowserToTunnel(ctx context.Context) {
 			ConnID:  r.TunnelConnID,
 			Payload: buf[:n],
 		}
-		if err := protocol.WriteFrame(r.Session.Conn, frame); err != nil {
+		if err := r.Session.WriteFrame(frame); err != nil {
 			slog.Error("failed to send tunnel_data",
 				"conn_id", r.TunnelConnID,
 				"error", err,

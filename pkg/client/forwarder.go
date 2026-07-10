@@ -8,24 +8,22 @@ import (
 	"time"
 
 	"hole/pkg/protocol"
-
-	"github.com/gorilla/websocket"
 )
 
 // LocalForward 本地转发（对应一个 TUNNEL_OPEN 分配的连接）
 type LocalForward struct {
 	TunnelConnID string
 	LocalConn    net.Conn
-	wsConn       *websocket.Conn
+	session      *TunnelSession
 	cancel       context.CancelFunc
 }
 
 // NewLocalForward 创建本地转发
-func NewLocalForward(tunnelConnID string, localConn net.Conn, wsConn *websocket.Conn) *LocalForward {
+func NewLocalForward(tunnelConnID string, localConn net.Conn, session *TunnelSession) *LocalForward {
 	return &LocalForward{
 		TunnelConnID: tunnelConnID,
 		LocalConn:    localConn,
-		wsConn:       wsConn,
+		session:      session,
 	}
 }
 
@@ -60,7 +58,7 @@ func (f *LocalForward) Start(ctx context.Context) {
 				)
 			}
 			// 发送 TUNNEL_CLOSE
-			_ = protocol.WriteFrame(f.wsConn, &protocol.Frame{
+			_ = f.session.WriteFrame(&protocol.Frame{
 				Type:   protocol.FrameTunnelClose,
 				ConnID: f.TunnelConnID,
 			})
@@ -73,7 +71,7 @@ func (f *LocalForward) Start(ctx context.Context) {
 			ConnID:  f.TunnelConnID,
 			Payload: buf[:n],
 		}
-		if err := protocol.WriteFrame(f.wsConn, frame); err != nil {
+		if err := f.session.WriteFrame(frame); err != nil {
 			slog.Error("failed to send tunnel_data",
 				"conn_id", f.TunnelConnID,
 				"error", err,

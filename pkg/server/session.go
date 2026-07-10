@@ -23,10 +23,18 @@ type TunnelSession struct {
 	activeRelays map[string]*Relay // tunnel_conn_id → Relay
 	lastPong     time.Time
 	mu           sync.Mutex
+	wsMu         sync.Mutex // 串行化 WebSocket 写操作
 	done         chan struct{}
 
 	heartbeatInterval time.Duration
 	heartbeatTimeout  time.Duration
+}
+
+// WriteFrame 线程安全地写入帧
+func (s *TunnelSession) WriteFrame(frame *protocol.Frame) error {
+	s.wsMu.Lock()
+	defer s.wsMu.Unlock()
+	return protocol.WriteFrame(s.Conn, frame)
 }
 
 // NewTunnelSession 创建隧道会话
@@ -183,7 +191,7 @@ func (s *TunnelSession) HandleFrame(frame *protocol.Frame) error {
 			Type:   protocol.FramePong,
 			ConnID: protocol.ZeroConnID,
 		}
-		return protocol.WriteFrame(s.Conn, pong)
+		return s.WriteFrame(pong)
 
 	case protocol.FramePong:
 		s.mu.Lock()
