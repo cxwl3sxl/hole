@@ -1,0 +1,22 @@
+server:
+  # 监听地址
+  addr: ":8080"
+  # 主域名（用于泛域名匹配）
+  domain: "84.pj-local.cn"
+  # 连接空闲超时（秒）
+  idle_timeout: 300
+  # 允许的最大隧道连接数
+  max_tunnels: 1000
+
+auth:
+  # 全局共享的认证 Token
+  global_token: "sk_global_secret"
+
+heartbeat:
+  # 期望客户端发送 PING 的间隔（秒）
+  interval: 30
+  # 超时倍数（连续 N 次未收到即断开）
+  timeout_multiplier: 3
+
+logging:
+  level: "info"

@@ -1,0 +1,15 @@
+server:
+  # 服务器地址
+  address: "84.pj-local.cn:8080"
+  # 是否启用 TLS (wss://)
+  tls: false
+  # 全局认证 Token（需与服务端 global_token 一致）
+  token: "sk_global_secret"
+
+# 子域名 → 目标服务映射
+proxy:
+  s120: "192.168.0.36:8702"
+
+heartbeat:
+  # 心跳间隔（秒）
+  interval: 30
