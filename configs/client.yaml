@@ -1,22 +1,14 @@
 server:
-  # 服务器地址
-  address: "84.pj-local.cn:8080"
-  # 是否启用 TLS (wss://)
-  tls: false
-  # WebSocket 升级路径（需与服务端一致，默认 /_tunnel/）
-  tunnel_path: "/_tunnel/"
-  # 全局认证 Token（需与服务端 global_token 一致）
-  token: "sk_global_secret"
-
-# 子域名 → 目标服务映射
-# 简写格式（无 TLS）：
-#   s120: "192.168.0.36:8602"
-# 完整格式（支持 TLS）：
+    address: p.pjservice.cn
+    tls: false
+    token: sk_global_secret
+    tunnel_path: /_tunnel/
 proxy:
-  s120:
-    target: "192.168.0.36:8602"
-    tls: true
-
+    s120:
+        target: 192.168.0.36:8602
+        tls: true
 heartbeat:
-  # 心跳间隔（秒）
-  interval: 30
+    interval: 30
+webui:
+    enabled: true
+    addr: :18080

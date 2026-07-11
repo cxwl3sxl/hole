@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虫洞 - 隧道代理管理</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242838;
+    --border: #2e3348;
+    --text: #e1e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4ed;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a1d27, #242838);
+    border-bottom: 1px solid #2e3348;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header h1 { font-size: 20px; font-weight: 600; }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虫洞 - 隧道代理管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4ed;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a1d27, #242838);
+    border-bottom: 1px solid #2e3348;
+    padding: 20px 32px;
+  }
+
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header h1 span { color: #6366f1; }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 24px; }
+
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2e3348;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 13px; color: #8b8fa3; margin-bottom: 4px; }
+  .form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    background: #242838;
+    border: 1px solid #2e3348;
+    border-radius: 6px;
+    color: #e1e4ed;
+    font-size: 14px;
+    outline: none;
+  }
+  .form-group input:focus { border-color: #6366f1; }
+  .form-group .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  /* Switch */
+  .form-group .switch {
+    position: relative;
+    width: 40px;
+    min-width: 40px;
+    height: 22px;
+  }
+  .form-group .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .form-group .switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #4a4d60;
+    border-radius: 22px;
+    transition: background 0.3s;
+  }
+  .form-group .switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .form-group .switch input:checked + .slider {
+    background: #6366f1;
+  }
+  .form-group .switch input:checked + .slider::before {
+    transform: translateX(18px);
+  }
+
+  .proxy-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #242838;
+    border: 1px solid #2e3348;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+
+  .proxy-item .subdomain {
+    font-weight: 600;
+    color: #818cf8;
+    min-width: 100px;
+  }
+
+  .proxy-item .target { flex: 1; }
+
+  .proxy-item .tls-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #1e293b;
+    color: #8b8fa3;
+  }
+
+  .proxy-item .tls-badge.active {
+    background: #1a3a2a;
+    color: #22c55e;
+  }
+
+  .proxy-item .actions { display: flex; gap: 6px; }
+
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary { background: #6366f1; color: #fff; }
+  .btn-primary:hover { background: #818cf8; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #22c55e; }
+  .toast.error { background: #ef4444; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: #1a1d27;
+    border: 1px solid #2e3348;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+  }
+
+  .modal h3 { margin-bottom: 16px; font-size: 16px; }
+  .modal .form-group { margin-bottom: 12px; }
+  .modal .form-group label { display: block; font-size: 13px; color: #8b8fa3; margin-bottom: 4px; }
+  .modal .form-group .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .modal .form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    background: #242838;
+    border: 1px solid #2e3348;
+    border-radius: 6px;
+    color: #e1e4ed;
+    font-size: 14px;
+    outline: none;
+  }
+  .modal .form-group input:focus { border-color: #6366f1; }
+  .modal .form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header" style="display:flex;align-items:center;gap:12px;">
+  <img src="logo.png" alt="虫洞" style="height:32px;width:32px;">
+  <h1><span>虫洞</span> 隧道代理管理</h1>
+</div>
+
+<div class="container">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="margin:0;">代理映射</h2>
+      <button class="btn btn-primary btn-sm" onclick="showAddProxyModal()">+ 添加</button>
+    </div>
+    <div id="proxyList">
+      <div style="text-align:center;padding:20px;color:#8b8fa3;">加载中...</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;">
+    <button class="btn btn-primary" onclick="saveProxies()">应用</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="proxyModal">
+  <div class="modal">
+    <h3 id="proxyModalTitle">添加代理</h3>
+    <div class="form-group">
+      <label>子域名</label>
+      <input type="text" id="proxySubdomain" placeholder="例如: myapp">
+    </div>
+    <div class="form-group">
+      <label>目标地址</label>
+      <input type="text" id="proxyTarget" placeholder="例如: 127.0.0.1:3000">
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label">
+        <label class="switch">
+          <input type="checkbox" id="proxyTls">
+          <span class="slider"></span>
+        </label>
+        目标服务使用 TLS
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-sm" style="background:#2e3348;color:#8b8fa3;" onclick="closeProxyModal()">取消</button>
+      <button class="btn btn-sm btn-primary" onclick="saveProxy()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let proxies = {};
+let editingSubdomain = null;
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function api(url, options) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || 'success') + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function loadProxies() {
+  try {
+    proxies = await api('/api/proxies');
+    renderProxies();
+  } catch (e) {
+    showToast('加载配置失败: ' + e.message, 'error');
+  }
+}
+
+function renderProxies() {
+  const list = document.getElementById('proxyList');
+  const entries = Object.entries(proxies);
+  if (entries.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:#8b8fa3;">暂无代理映射，点击上方"添加"按钮创建</div>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const [subdomain, target] of entries) {
+    const targetStr = typeof target === 'string' ? target : (target.target || target.Target || '');
+    const tls = typeof target === 'object' && (target.tls || target.TLS);
+    const item = document.createElement('div');
+    item.className = 'proxy-item';
+    item.innerHTML = `
+      <span class="subdomain">${escapeHtml(subdomain)}</span>
+      <span class="target">${escapeHtml(targetStr)}</span>
+      <span class="tls-badge ${tls ? 'active' : ''}">${tls ? 'TLS' : 'TCP'}</span>
+      <div class="actions">
+        <button class="btn btn-sm btn-primary" onclick="editProxy('${escapeHtml(subdomain)}')">编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProxy('${escapeHtml(subdomain)}')">删除</button>
+      </div>
+    `;
+    list.appendChild(item);
+  }
+}
+
+function showAddProxyModal() {
+  editingSubdomain = null;
+  document.getElementById('proxyModalTitle').textContent = '添加代理';
+  document.getElementById('proxySubdomain').value = '';
+  document.getElementById('proxyTarget').value = '';
+  document.getElementById('proxyTls').checked = false;
+  document.getElementById('proxyModal').classList.add('show');
+}
+
+function editProxy(subdomain) {
+  editingSubdomain = subdomain;
+  const target = proxies[subdomain];
+  const targetStr = typeof target === 'string' ? target : (target.target || target.Target || '');
+  const tls = typeof target === 'object' && (target.tls || target.TLS);
+  document.getElementById('proxyModalTitle').textContent = '编辑代理';
+  document.getElementById('proxySubdomain').value = subdomain;
+  document.getElementById('proxyTarget').value = targetStr;
+  document.getElementById('proxyTls').checked = tls;
+  document.getElementById('proxyModal').classList.add('show');
+}
+
+function closeProxyModal() {
+  document.getElementById('proxyModal').classList.remove('show');
+  editingSubdomain = null;
+}
+
+function saveProxy() {
+  const subdomain = document.getElementById('proxySubdomain').value.trim();
+  const target = document.getElementById('proxyTarget').value.trim();
+  const tls = document.getElementById('proxyTls').checked;
+
+  if (!subdomain || !target) {
+    showToast('请填写子域名和目标地址', 'error');
+    return;
+  }
+
+  if (editingSubdomain && editingSubdomain !== subdomain) {
+    delete proxies[editingSubdomain];
+  }
+
+  proxies[subdomain] = { target: target, tls: tls };
+  closeProxyModal();
+  renderProxies();
+  showToast('点击下方"应用"按钮生效');
+}
+
+function deleteProxy(subdomain) {
+  if (!confirm('确定删除代理 "' + subdomain + '" 吗？')) return;
+  delete proxies[subdomain];
+  renderProxies();
+  showToast('点击下方"应用"按钮生效');
+}
+
+async function saveProxies() {
+  try {
+    await api('/api/proxies', { method: 'PUT', body: JSON.stringify(proxies) });
+    const result = await api('/api/proxies/restart', { method: 'POST' });
+    showToast('配置已保存，隧道已重新连接');
+  } catch (e) {
+    showToast('保存失败: ' + e.message, 'error');
+  }
+}
+
+loadProxies();
+</script>
+</body>
+</html>

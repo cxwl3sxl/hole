@@ -40,6 +40,14 @@ func (c *Client) Run(ctx context.Context) error {
 	return nil
 }
 
+// Restart 断开当前隧道连接，触发自动重连（使用最新配置）
+func (c *Client) Restart() {
+	if c.session != nil {
+		slog.Info("restarting tunnel session...")
+		c.session.Stop()
+	}
+}
+
 func (c *Client) reconnectLoop(ctx context.Context) {
 	attempt := 0
 	maxBackoff := 60 * time.Second

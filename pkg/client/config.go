@@ -9,8 +9,8 @@ import (
 
 // ProxyTarget 表示一个代理目标，支持普通 TCP 和 TLS
 type ProxyTarget struct {
-	Target string `yaml:"target"`
-	TLS    bool   `yaml:"tls"`
+	Target string `yaml:"target" json:"target"`
+	TLS    bool   `yaml:"tls" json:"tls"`
 }
 
 // UnmarshalYAML 支持两种配置格式：
@@ -40,11 +40,18 @@ func (pt *ProxyTarget) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+// WebUIConfig Web 管理界面配置
+type WebUIConfig struct {
+	Enabled bool   `yaml:"enabled"` // 是否启用 Web 管理界面
+	Addr    string `yaml:"addr"`    // 监听地址，默认 ":18080"
+}
+
 // Config 客户端配置
 type Config struct {
 	Server    ServerConfig          `yaml:"server"`
 	Proxies   map[string]ProxyTarget `yaml:"proxy"`
 	Heartbeat HeartbeatConfig       `yaml:"heartbeat"`
+	WebUI     WebUIConfig           `yaml:"webui"`
 }
 
 // ServerConfig 服务器连接配置
@@ -81,6 +88,12 @@ func LoadClientConfig(path string) (*Config, error) {
 	}
 	if cfg.Server.TunnelPath == "" {
 		cfg.Server.TunnelPath = "/_tunnel/"
+	}
+	if cfg.WebUI.Addr == "" {
+		cfg.WebUI.Addr = ":18080"
+	}
+	if !cfg.WebUI.Enabled {
+		cfg.WebUI.Enabled = true // 默认启用
 	}
 
 	return &cfg, nil

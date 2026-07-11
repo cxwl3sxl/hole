@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"hole/pkg/client"
+	"hole/pkg/client/webui"
 )
 
 func main() {
@@ -34,6 +35,20 @@ func main() {
 	)
 
 	c := client.NewClient(cfg)
+
+	// 启动 Web 管理界面
+	if cfg.WebUI.Enabled {
+		webUI := webui.NewServer(cfg, configPath, c.Restart)
+		go func() {
+			slog.Info("starting web management interface",
+				"addr", cfg.WebUI.Addr,
+			)
+			if err := webUI.Start(); err != nil {
+				slog.Error("web management interface failed", "error", err)
+			}
+		}()
+	}
+
 	ctx := context.Background()
 	if err := c.Run(ctx); err != nil {
 		slog.Error("client error", "error", err)

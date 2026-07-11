@@ -11,3 +11,7 @@ proxy:
 
 heartbeat:
   interval: 30
+
+webui:
+  enabled: true
+  addr: ":18080"
