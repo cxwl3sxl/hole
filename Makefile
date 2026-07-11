@@ -9,10 +9,10 @@ all: build
 build: server client
 
 server:
-	$(GO) build $(GOFLAGS) -o $(BINDIR)/megad ./cmd/server
+	$(GO) build $(GOFLAGS) -o $(BINDIR)/tund ./cmd/server
 
 client:
-	$(GO) build $(GOFLAGS) -o $(BINDIR)/mega ./cmd/client
+	$(GO) build $(GOFLAGS) -o $(BINDIR)/tun ./cmd/client
 
 test:
 	$(GO) test ./... -v

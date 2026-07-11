@@ -3,7 +3,7 @@
 复刻 ngrok 核心功能，全链路基于 HTTP/WS 协议，支持原始 TCP 字节透传。
 
 ```
-Browser ──HTTP/HTTPS──► Nginx ──HTTP──► Server(:8080) ──WS──► Client ──TCP/TLS──► Local Service
+Browser ──HTTP/HTTPS──► Nginx ──HTTP──► tund(:8080) ──WS──► tun ──TCP/TLS──► Local Service
 ```
 
 ---
@@ -19,7 +19,7 @@ Browser ──HTTP/HTTPS──► Nginx ──HTTP──► Server(:8080) ──
 vim configs/server.yaml
 
 # 启动
-./megad -config configs/server.yaml
+./tund -config configs/server.yaml
 ```
 
 ### 2. 部署客户端
@@ -31,7 +31,7 @@ vim configs/server.yaml
 vim configs/client.yaml
 
 # 启动
-./mega -config configs/client.yaml
+./tun -config configs/client.yaml
 ```
 
 ### 3. 验证
@@ -91,10 +91,10 @@ heartbeat:
 
 ```bash
 # 配置文件 + 命令行覆盖子域名和目标
-mega -config configs/client.yaml \
-     -subdomain s120 \
-     -target 192.168.0.36:8702 \
-     -tls              # 目标服务走 TLS
+tun -config configs/client.yaml \
+    -subdomain s120 \
+    -target 192.168.0.36:8702 \
+    -tls              # 目标服务走 TLS
 ```
 
 ---
@@ -157,10 +157,19 @@ mega -config configs/client.yaml \
 ## 构建
 
 ```bash
-make          # 编译 megad 和 mega
+# Linux/macOS（需要 make）
+make          # 编译 tund 和 tun
 make server   # 仅编译服务端
 make client   # 仅编译客户端
 make test     # 运行测试
+```
+
+```powershell
+# Windows（PowerShell）
+.\build.ps1            # 编译 tund 和 tun
+.\build.ps1 -Target server  # 仅编译服务端
+.\build.ps1 -Target client  # 仅编译客户端
+.\build.ps1 -Target clean   # 清理构建产物
 ```
 
 ---
@@ -173,14 +182,14 @@ make test     # 运行测试
                           ┌─ 公网 ─────────────────────────┐
                           │  Nginx (443) 终结 TLS           │
                           │  ↓ 转发明文 HTTP                │
-                          │  hole-server (:8080)            │
+                          │  tund (:8080)                   │
                           └──────────┬──────────────────────┘
                                      │ WebSocket 隧道
                           ┌──────────▼──────────────────────┐
                           │ 内网                             │
-                          │  hole-client                     │
+                          │  tun                             │
                           │  ↓ TCP/TLS                       │
-                          │  本地 HTTPS 服务 (:8702)          │
+                          │  本地服务 (:port)                 │
                           └─────────────────────────────────┘
 ```
 
