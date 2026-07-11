@@ -1,0 +1,13 @@
+server:
+  address: "localhost:8080"
+  tls: false
+  tunnel_path: "/_tunnel/"
+  token: "sk_global_secret"
+
+proxy:
+  smart120:
+    target: "localhost:9090"
+    tls: false
+
+heartbeat:
+  interval: 30

@@ -34,7 +34,7 @@ func (f *LocalForward) Start(ctx context.Context) {
 	defer f.cancel()
 	defer f.LocalConn.Close()
 
-	slog.Debug("forward started",
+	slog.Info("forward started",
 		"conn_id", f.TunnelConnID,
 		"local_addr", f.LocalConn.RemoteAddr(),
 	)
@@ -51,8 +51,16 @@ func (f *LocalForward) Start(ctx context.Context) {
 
 		n, err := f.LocalConn.Read(buf)
 		if err != nil {
-			if err != io.EOF && !isTimeoutError(err) {
-				slog.Debug("local read error",
+			if err == io.EOF {
+				slog.Info("forward local EOF",
+					"conn_id", f.TunnelConnID,
+				)
+			} else if isTimeoutError(err) {
+				slog.Info("forward local read timeout",
+					"conn_id", f.TunnelConnID,
+				)
+			} else {
+				slog.Warn("forward local read error",
 					"conn_id", f.TunnelConnID,
 					"error", err,
 				)
@@ -64,6 +72,12 @@ func (f *LocalForward) Start(ctx context.Context) {
 			})
 			return
 		}
+
+		slog.Info("forward read from local",
+			"conn_id", f.TunnelConnID,
+			"size", n,
+			"preview", string(buf[:min(n, 200)]),
+		)
 
 		// 发送 TUNNEL_DATA
 		frame := &protocol.Frame{

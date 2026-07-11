@@ -199,6 +199,16 @@ func handleBrowserRequest(
 	}
 	initialData := reqBuf.Bytes()
 
+	slog.Info("handleBrowserRequest",
+		"subdomain", subdomain,
+		"method", r.Method,
+		"path", r.URL.RequestURI(),
+		"host", r.Host,
+		"is_websocket", r.Header.Get("Upgrade"),
+		"req_size", len(initialData),
+		"req_preview", truncateString(string(initialData), 500),
+	)
+
 	// Hijack TCP 连接
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
@@ -223,6 +233,13 @@ func handleBrowserRequest(
 
 // extractSubdomain 从 Host 头中提取子域名
 // 例如: "myapp.abc.com:8080" → "myapp"
+func truncateString(s string, maxLen int) string {
+	if len(s) > maxLen {
+		return s[:maxLen] + "..."
+	}
+	return s
+}
+
 func extractSubdomain(host, domain string) string {
 	host = strings.ToLower(host)
 	domain = strings.ToLower(domain)

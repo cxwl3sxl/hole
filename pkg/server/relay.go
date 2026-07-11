@@ -130,8 +130,19 @@ func (r *Relay) handleBrowserToTunnel(ctx context.Context) {
 
 // WriteData 写入数据到浏览器连接（由 session.HandleFrame 调用）
 func (r *Relay) WriteData(data []byte) error {
+	slog.Info("relay WriteData",
+		"conn_id", r.TunnelConnID,
+		"size", len(data),
+		"preview", truncateString(string(data), 200),
+	)
 	r.BrowserConn.SetWriteDeadline(time.Now().Add(30 * time.Second))
 	_, err := r.BrowserConn.Write(data)
+	if err != nil {
+		slog.Error("relay WriteData failed",
+			"conn_id", r.TunnelConnID,
+			"error", err,
+		)
+	}
 	return err
 }
 

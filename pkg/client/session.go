@@ -180,13 +180,17 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 		slog.Error("failed to parse tunnel_open payload",
 			"error", err,
 		)
-		// 回复 TUNNEL_CLOSE
 		_ = s.WriteFrame(&protocol.Frame{
 			Type:   protocol.FrameTunnelClose,
 			ConnID: frame.ConnID,
 		})
 		return nil
 	}
+
+	slog.Info("tunnel_open received",
+		"conn_id", frame.ConnID,
+		"subdomain", payload.Subdomain,
+	)
 
 	// 查找代理目标
 	proxy, ok := s.Proxies[payload.Subdomain]
@@ -206,7 +210,7 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 	var err error
 	if proxy.TLS {
 		localConn, err = tls.Dial("tcp", proxy.Target, &tls.Config{
-			InsecureSkipVerify: true, // 内网环境，跳过证书验证
+			InsecureSkipVerify: true,
 		})
 	} else {
 		localConn, err = net.Dial("tcp", proxy.Target)
@@ -223,6 +227,11 @@ func (s *TunnelSession) handleTunnelOpen(frame *protocol.Frame) error {
 		})
 		return nil
 	}
+
+	slog.Info("tunnel_open connected to target",
+		"conn_id", frame.ConnID,
+		"target", proxy.Target,
+	)
 
 	// 创建并启动本地转发
 	fwd := NewLocalForward(frame.ConnID, localConn, s)
