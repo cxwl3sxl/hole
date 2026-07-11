@@ -7,15 +7,15 @@ $BINDIR = "bin"
 $GOFLAGS = @("-ldflags=-s -w", "-trimpath")
 
 function Build-Server {
-    Write-Host "Building tund..." -ForegroundColor Green
-    go build @GOFLAGS -o "$BINDIR\tund.exe" .\cmd\server\main.go
-    if ($?) { Write-Host "  tund.exe OK" -ForegroundColor Green }
+    Write-Host "Building whd..." -ForegroundColor Green
+    go build @GOFLAGS -o "$BINDIR\whd.exe" .\cmd\server\main.go
+    if ($?) { Write-Host "  whd.exe OK" -ForegroundColor Green }
 }
 
 function Build-Client {
-    Write-Host "Building tun..." -ForegroundColor Green
-    go build @GOFLAGS -o "$BINDIR\tun.exe" .\cmd\client\main.go
-    if ($?) { Write-Host "  tun.exe OK" -ForegroundColor Green }
+    Write-Host "Building wh..." -ForegroundColor Green
+    go build @GOFLAGS -o "$BINDIR\wh.exe" .\cmd\client\main.go
+    if ($?) { Write-Host "  wh.exe OK" -ForegroundColor Green }
 }
 
 function Clean {
